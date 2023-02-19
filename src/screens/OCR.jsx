@@ -58,7 +58,8 @@ export default function App() {
     await worker.loadLanguage("eng");
     await worker.initilizes("eng");
     const { data } = await worker.recognize(selectedImage);
-    setTextResult(data.text);
+    // setTextResult(data.text);
+    setTextResult("hello?");
     console.log({ textResult });
   }, [worker, selectedImage]);
 
