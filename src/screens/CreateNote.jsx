@@ -62,12 +62,10 @@ export default function CreateNote({ route }) {
           title="Submit Note"
           // onPress={() => textFinder()}
           onPress={async () => {
-            const user = supabase.auth.getUser();
-            console.log(user);
             await supabase.from("notes").insert({
               title: title,
               content: content,
-              user: user.id,
+              user: "e3caf174-7f5f-4831-824d-299790903344",
             });
             navigation.navigate("HomePage");
           }}

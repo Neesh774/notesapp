@@ -1,22 +1,34 @@
 import { useNavigation } from "@react-navigation/native";
 import { ChevronRight, X } from "lucide-react-native";
-import { FlatList, Pressable, ScrollView, StyleSheet } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
 import { View, Text } from "react-native";
 import formatDate from "../formatDate";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Input } from "react-native-elements";
 import Fuse from "fuse.js";
 
-export default function NoteList({ notes }) {
+export default function NoteList({ notes, refresh, refreshing }) {
   const [search, setSearch] = useState(null);
-  const filteredNotes = useMemo(() => {
+  const [filteredNotes, setFilteredNotes] = useState(notes);
+
+  const searchNotes = () => {
     if (!search) return notes;
     const fuse = new Fuse(notes, {
       keys: ["title", "content"],
     });
 
     return fuse.search(search).map((result) => result.item);
-  }, [search]);
+  };
+
+  useEffect(() => {
+    setFilteredNotes(notes);
+  }, [notes]);
 
   return (
     <View>
@@ -28,12 +40,16 @@ export default function NoteList({ notes }) {
         inputContainerStyle={{
           borderBottomWidth: 0,
         }}
+        onBlur={() => setFilteredNotes(searchNotes())}
       />
       <FlatList
         style={styles.list}
         data={filteredNotes}
         renderItem={(note) => <Note note={note.item} />}
         keyExtractor={(note) => note.id}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
+        }
       />
     </View>
   );
@@ -59,6 +75,7 @@ export function Note({ note }) {
 const styles = StyleSheet.create({
   list: {
     padding: 10,
+    minHeight: "40%",
   },
   note: {
     flex: 1,
@@ -68,6 +85,7 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#ffffff10",
     borderRadius: 10,
+    marginBottom: 8,
   },
   noteLabel: {
     fontSize: 18,

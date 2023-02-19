@@ -23,7 +23,6 @@ export default function HomePage({ route }) {
     try {
       setLoading(true);
       if (!session?.user) throw new Error("No user on the session!");
-
       let { data, error, status } = await supabase
         .from("notes")
         .select(`*`)
@@ -48,7 +47,10 @@ export default function HomePage({ route }) {
       <View>
         <Text style={styles.headerText}>Your Notes</Text>
       </View>
-      {notes && <NoteList notes={notes} />}
+      {notes && (
+        <NoteList notes={notes} refresh={getProfile} refreshing={loading} />
+      )}
+      {loading && <Text style={{ color: "white" }}>Loading...</Text>}
       <Button
         title="Capture Note Image"
         onPress={() => navigation.navigate("OCR")}
@@ -65,6 +67,7 @@ export default function HomePage({ route }) {
           })
         }
       ></Button>
+      <Button title="Refresh" onPress={() => getProfile()}></Button>
       <Button title="Sign Out" onPress={() => supabase.auth.signOut()}></Button>
     </SafeAreaView>
   );

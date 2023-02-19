@@ -45,10 +45,25 @@ export default function App() {
   const getText = async () => {
     // get api route
     console.log("Getting text");
+
+    // convert image to base64
+    const base64 = await fetch(selectedImage)
+      .then((res) => res.blob())
+      .then((blob) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      });
+
     const imageName = selectedImage.split("/").pop();
     const { data, error } = await supabase.storage
       .from("notes")
-      .upload(imageName + ".jpg", selectedImage);
+      .upload(imageName, base64, {
+        contentType: "image/jpg",
+      });
     if (error || !data || !data.path) {
       Alert.alert("Error");
       return;

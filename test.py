@@ -17,6 +17,7 @@ import cv2
 from imageio import imread
 import matplotlib.pyplot as plt
 
+model = Summarizer()
 
 filename = "pacertest.png"
 with open(filename, "rb") as fid:
@@ -28,4 +29,6 @@ b64_string = b64_bytes.decode()
 img = imread(io.BytesIO(base64.b64decode(b64_string)))
 cv2_img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
-print (pytesseract.image_to_string(cv2_img))
+text = pytesseract.image_to_string(cv2_img)
+print(text)
+print(model(text))
