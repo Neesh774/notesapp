@@ -1,8 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { StyleSheet, Text, View, Button, Image, Pressable } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Button,
+  Image,
+  Pressable,
+  Alert,
+} from "react-native";
 import { Camera } from "expo-camera";
 import { useNavigation } from "@react-navigation/native";
 import { Aperture, ChevronRight, SwitchCamera } from "lucide-react-native";
+import { supabase } from "../initSupabase";
 // import TextRecognition from "react-native-text-recognition";
 // import ml from "@react-native-firebase/mlkit";
 // import { launchCamera, launchImageLibrary } from "react-native-image-picker";
@@ -12,7 +21,6 @@ export default function App() {
   const [textResult, setTextResult] = useState("testing");
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [camera, setCamera] = useState(null);
-  const [image, setImage] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const navigation = useNavigation();
   useEffect(() => {
@@ -28,34 +36,41 @@ export default function App() {
 
   const takePicture = async () => {
     if (camera) {
-      const imgdata = await camera.takePictureAsync(null);
-      const imageBlob = await fetch(imgdata.uri);
-      const blob = await imageBlob.blob();
-      let reader = new FileReader();
-      reader.readAsDataURL(blob);
-
-      reader.onloadend = function () {
-        let base64data = reader.result;
-        setImage(base64data);
-      };
+      const { uri } = await camera.takePictureAsync(null);
+      setSelectedImage(uri);
+      console.log(uri);
     }
-    setSelectedImage({ uri: image });
   };
 
   const getText = async () => {
     // get api route
     console.log("Getting text");
-    const data = await fetch("http://172.20.10.3:8000/text", {
+    const imageName = selectedImage.split("/").pop();
+    const { data, error } = await supabase.storage
+      .from("notes")
+      .upload(imageName + ".jpg", selectedImage);
+    if (error || !data || !data.path) {
+      Alert.alert("Error");
+      return;
+    }
+    const img = await fetch("http://10.189.36.187:8000/text", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ img: image }),
+      body: JSON.stringify({ img: data.path }),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        console.log(res);
+        return res.json();
+      })
       .catch((err) => console.error(err));
-    console.log("DATA", data);
-    // switch routes
+    console.log(img);
+    navigation.navigate("CreateNote", {
+      image: data.path,
+      title: "",
+      content: "",
+    });
   };
 
   return (
@@ -70,9 +85,9 @@ export default function App() {
             ratio={"1:1"}
           />
         </View>
-        {image && (
+        {selectedImage && (
           <Image
-            source={{ uri: image }}
+            source={{ uri: selectedImage }}
             style={{
               aspectRatio: 1,
               height: "40%",

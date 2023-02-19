@@ -14,6 +14,7 @@ import { Image, Input } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Commponent } from "react";
+import { supabase } from "../initSupabase";
 
 export default function CreateNote({ route }) {
   const [title, setTitle] = useState(route.params.title);
@@ -60,9 +61,16 @@ export default function CreateNote({ route }) {
         <Button
           title="Submit Note"
           // onPress={() => textFinder()}
-          onPress={() =>
-            navigation.navigate("HomePage", { paramKey: title, content })
-          }
+          onPress={async () => {
+            const user = supabase.auth.getUser();
+            console.log(user);
+            await supabase.from("notes").insert({
+              title: title,
+              content: content,
+              user: user.id,
+            });
+            navigation.navigate("HomePage");
+          }}
         />
       </KeyboardAvoidingView>
     </View>
