@@ -12,6 +12,7 @@ import { Camera } from "expo-camera";
 import { useNavigation } from "@react-navigation/native";
 import { Aperture, ChevronRight, SwitchCamera } from "lucide-react-native";
 import { supabase } from "../initSupabase";
+import { decode } from "base64-arraybuffer";
 // import TextRecognition from "react-native-text-recognition";
 // import ml from "@react-native-firebase/mlkit";
 // import { launchCamera, launchImageLibrary } from "react-native-image-picker";
@@ -36,9 +37,8 @@ export default function App() {
 
   const takePicture = async () => {
     if (camera) {
-      const { uri } = await camera.takePictureAsync(null);
-      setSelectedImage(uri);
-      console.log(uri);
+      const data = await camera.takePictureAsync(null);
+      setSelectedImage(data.uri);
     }
   };
 
@@ -46,28 +46,28 @@ export default function App() {
     // get api route
     console.log("Getting text");
 
-    // convert image to base64
-    const base64 = await fetch(selectedImage)
-      .then((res) => res.blob())
-      .then((blob) => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-      });
+    // get file obj from uri
+    const response = await fetch(selectedImage);
+    const blob = await response.blob();
+    const base64 = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => resolve(reader.result);
+    });
+    console.log(base64);
 
     const imageName = selectedImage.split("/").pop();
     const { data, error } = await supabase.storage
       .from("notes")
-      .upload(imageName, base64, {
+      .upload(imageName, decode(base64), {
         contentType: "image/jpg",
       });
     if (error || !data || !data.path) {
       Alert.alert("Error");
+      console.error(error);
       return;
     }
+    console.log(data, error);
     const img = await fetch("http://10.189.36.187:8000/text", {
       method: "POST",
       headers: {
