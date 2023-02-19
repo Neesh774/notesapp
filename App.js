@@ -9,6 +9,9 @@ import SignUp from "./src/screens/SignUp";
 import Note from "./src/screens/Note";
 import OCR from "./src/screens/OCR";
 import Text from "./src/screens/Text";
+import CreateNote from "./src/screens/CreateNote";
+import HomePage from "./src/screens/HomePage";
+
 import Account from "./src/screens/HomePage";
 import { supabase } from "./src/initSupabase.js";
 import { Session } from "@supabase/supabase-js";
@@ -47,7 +50,22 @@ export default function App() {
             component={Account}
             initialParams={{ session }}
             options={{
-              title: "Your Notes",
+              headerShown: false,
+            }}
+          />
+          <AppStack.Screen
+            name="HomePage"
+            component={HomePage}
+            initialParams={{ session }}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <AppStack.Screen
+            name="OCR"
+            component={OCR}
+            options={{
+              title: "New Note",
               headerStyle: {
                 backgroundColor: "#2B2D42",
               },
@@ -56,15 +74,34 @@ export default function App() {
               headerShadowVisible: false,
             }}
           />
-          <AppStack.Screen name="OCR" component={OCR} />
           <AppStack.Screen
             name="Note"
             component={Note}
             options={({ route }) => ({
               title: route.params.note.title,
+              headerStyle: {
+                backgroundColor: "#2B2D42",
+              },
+              headerTintColor: "#EF233C",
+              headerBackTitleVisible: false,
+              headerShadowVisible: false,
             })}
           />
           <AppStack.Screen name="Text" component={Text} />
+          <AppStack.Screen
+            name="CreateNote"
+            component={CreateNote}
+            options={{
+              title: "Create Note",
+              headerStyle: {
+                backgroundColor: "#2B2D42",
+              },
+              headerTintColor: "#EF233C",
+              headerBackTitleVisible: false,
+              headerShadowVisible: false,
+              headerTitle: "",
+            }}
+          />
         </AppStack.Navigator>
       ) : (
         <AuthStack.Navigator>

@@ -1,17 +1,41 @@
 import { useNavigation } from "@react-navigation/native";
-import { ChevronRight } from "lucide-react-native";
+import { ChevronRight, X } from "lucide-react-native";
 import { FlatList, Pressable, ScrollView, StyleSheet } from "react-native";
 import { View, Text } from "react-native";
 import formatDate from "../formatDate";
+import { useMemo, useState } from "react";
+import { Input } from "react-native-elements";
+import Fuse from "fuse.js";
 
 export default function NoteList({ notes }) {
+  const [search, setSearch] = useState(null);
+  const filteredNotes = useMemo(() => {
+    if (!search) return notes;
+    const fuse = new Fuse(notes, {
+      keys: ["title", "content"],
+    });
+
+    return fuse.search(search).map((result) => result.item);
+  }, [search]);
+
   return (
-    <FlatList
-      style={styles.list}
-      data={notes}
-      renderItem={(note) => <Note note={note.item} />}
-      keyExtractor={(note) => note.id}
-    />
+    <View>
+      <Input
+        placeholder="Search"
+        value={search}
+        onChangeText={setSearch}
+        style={styles.search}
+        inputContainerStyle={{
+          borderBottomWidth: 0,
+        }}
+      />
+      <FlatList
+        style={styles.list}
+        data={filteredNotes}
+        renderItem={(note) => <Note note={note.item} />}
+        keyExtractor={(note) => note.id}
+      />
+    </View>
   );
 }
 
@@ -57,5 +81,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#8D99AE",
     fontFamily: "Lexend Deca",
+  },
+  search: {
+    backgroundColor: "#ffffff20",
+    borderRadius: 1000,
+    padding: 12,
+    color: "white",
   },
 });
